@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" >
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>FILTRO</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<style>
+.info{width: 100px;}
+.pickCalendar{color: rgb(255, 255, 255);}
+</style>
+<body onload="startDB()">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+</div> 
+
+<div class="formularioV1">
+  <div class="inputDate">
+    <span>Fecha.</span>
+    <div>
+      <div id="fechaVentas_Txt"></div>
+      <input data-filMes id="fechaVentas" onchange="saveText(event,'init')" class="pickCalendar" type='month'/>      
+    </div>
+  </div>
+
+  <div class="botones">
+    <button class="btn-material info" id="btnGuar" onclick="window.history.back()">Filtrar</button>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+  
+async function init_m(){
+  setTimeout(async()=>{
+    let fil = await storageJsonSetup("filmes",{"fechaVentas":month(),"vendedores":"todos"})
+    document.getElementById("fechaVentas").value = fil.fechaVentas
+    document.getElementById("fechaVentas_Txt").textContent = monthTOtxt(fil.fechaVentas) 
+  },100)
+}
+</script>
+</body>
+</html>

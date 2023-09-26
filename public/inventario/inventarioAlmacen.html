@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVENTARIO</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('inventarios','m')" class="icon cloudDowRed"></span>
+  </div>
+  <span onclick="listVer()" class="icon menuBurger"></span>  
+</div>   
+
+<div class="buscador">
+  <input class="input_ef" size="10" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar Producto">  
+  <span class="icon  BORRAR" onclick="limpiarBus()"></span>
+</div>
+
+<div class="secionCheck">
+  <div id="contedOcultador" class="contedOcultador"></div>
+</div>
+
+<div class="contenTable">
+  <table  onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th onclick="renderDatos(true,'txt','produ')">Producto</th>
+        <th onclick="renderDatos(true,'txt','marca')">Marca</th>
+        <th onclick="renderDatos(true,'txt','unidad')">Unidad <br> Medida</th>
+        <th onclick="renderDatos(true,'num','cant')">Dis.</th>
+        <th>Edit.</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var items = []
+var dat
+async function renderTab(ord,typ,elm){
+  dat = await read_DB('inventarios')
+  dat = await sortTable(ord,typ,elm,dat)
+  var outerHTML = '';
+  for (let i = 0; i < dat.length; i++){
+    const el= dat[i];
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${el.produ}</td>
+      <td>${el.marca}</td>
+      <td>${el.unidad}</td>
+      <td>${el.cant}</td>
+      <td>
+        <span onclick="editar('${el.id}')" class="icon PEN">
+      </td>
+    </tr>` 
+    items.push({"id":el.id,"txt":el.produ})    
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("inventario") 
+  filtroBus()
+}
+
+function editar(id){
+  localStorage.setItem('idItem', id);
+  lnk('../inventario/formEdit_inventarioAlma')
+}
+
+function init_m(){
+  document.getElementById("buscar").value = storage("buscar")
+  renderTab()
+  openSocket("sincINV");
+}   
+
+</script>
+</body>
+</html>

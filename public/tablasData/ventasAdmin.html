@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventas</title>
+<link href="/css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.contenTable{ height: calc(100vh - 90px);}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('inventarios',true)" class="icon cloudDowRed"></span>
+  </div>
+  <div id="fechaVentas_Txt"></div>
+  <div>
+    <span class="icon filter" onclick="filtroDiaVen()"></span>
+    <span onclick="listVer()" class="icon menuBurger"></span>  
+  </div>
+</div>  
+
+<div id="contedOcultador" class="contedOcultador"></div>
+
+<div class="buscador">
+  <input class="input_ef" size="10" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar Clientes">  
+</div>
+<div class="contenTable">
+  <table onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th>Vendedor</th>
+        <th>Cliente</th>
+        <th onclick="renderTab(true,'txt','fechVent')" >fecha <span class="of"></span></th>
+        <th>Total</th>
+        <th>ver</th>
+        <th>pdf</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+    <tfoot id="tfootColm">
+      <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>Total</th>
+        <th id="totalTab"></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var listVen = []
+var items = []
+async function renderTab(ord,typ,elm){
+  listVen = []
+  let dat = await read_DB('ventas')
+  //filtro
+  let df = await storageJsonSetup("filvent",{"todoFecha":false,"fechaVentas":fecActInp(),"vendedores":"todos"})
+  for (let i = 0; i < dat.length; i++){
+    let el = dat[i];
+    let f1 = await itemFilter(timeTOinput(el.fechVent),df["todoFecha"],df["fechaVentas"],listVen,el)
+    if(!f1){ continue }  
+    let f2 = await itemFilter((el.dataVenden)["nom"],(df["vendedores"]=="todos"),df["vendedores"],listVen,el)
+    if(!f2){ continue }
+  }
+  //filtro
+
+  listVen = await sortTable(ord,typ,elm,listVen)
+  let totalTab = 0
+
+  var outerHTML = '';
+  for (let i = 0; i < listVen.length; i++) {
+    let el = listVen[i];
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${(el.dataVenden).nom}</td>
+      <td>${el.cliente["cli"]}</td>
+      <td>${timeToMesDiaShort(el.fechVent)}</td>
+      <td class="bs">${el.total}</td>
+      <td>
+        <span onclick="ver('${el.id}','info')" class="icon Eyes">
+      </td>
+      <td>
+        <span onclick="ver('${el.id}','pdf')" class="icon pdf1">
+      </td>
+    </tr>`
+    totalTab += el.total
+    items.push({"id":el.id,"txt":el.cliente["cli"]}) 
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("tablaPedidos")
+  document.getElementById("totalTab").textContent = totalTab.toFixed(2)
+}
+
+async function ver(id,t){
+  let dataVenta = await read_ID_DB(id,'ventas')
+  localStorage.setItem("dataVenta",JSON.stringify(dataVenta))
+  if(t=="info"){ventaInfo()}else{ventaPdf()}
+}
+
+async function init_m(){ 
+  let fil = await storageJsonSetup("filvent",{"todoFecha":false,"fechaVentas":fecActInp(),"vendedores":"todos"})
+  document.getElementById("fechaVentas_Txt").textContent = fechaForma2(fil.fechaVentas) 
+  await renderTab()
+  openSocket("sincVEN");
+}   
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.contenTable{ height: calc(100vh - 50px);}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('ventas','m')" class="icon cloudDowRed"></span>
+  </div>
+  <div id="fechaVentas_Txt"></div>
+  <div>
+    <span class="icon filter" onclick="filtroTabVendedor()"></span>
+    <span onclick="listVer()" class="icon menuBurger"></span>  
+  </div>
+</div>  
+
+<div id="contedOcultador" class="contedOcultador"></div>
+
+<div class="contenTable">
+  <table onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th onclick="sortVent()">Vendedor</th>
+        <th>Cliente</th>
+        <th onclick="sortFech()">fecha</th>
+        <th>ver</th>
+        <th>pdf</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var listVen = []
+async function renderTab(ord,typ,elm){
+  listVen = []
+  let dat = await read_DB('ventas')
+  //filtro
+  let df = await storageJsonSetup("filvent",{"todoFecha":false,"fechaVentas":fecActInp(),"vendedores":"todos"})
+  for (let i = 0; i < dat.length; i++){
+    let el = dat[i];
+    let f1 = await itemFilter(timeTOinput(el.fechVent),df["todoFecha"],df["fechaVentas"],listVen,el)
+    if(!f1){ continue }  
+  }
+  //filtro
+  //ordenar
+  listVen = await sortTable(ord,typ,elm,listVen)
+  //ordenar
+  var outerHTML = '';
+  for (let i = 0; i < listVen.length; i++) {
+    const el = listVen[i];
+    let d = await read_ID_DB((el.cliente).id,'clientes')
+    let mark = "mapMarkedGre"
+    if(d.ubi==undefined||d.ubi==""){ mark = "mapMarkedRed" }
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${(el.dataVenden).nom}</td>
+      <td data-itm id="ref_${el.id}">${(el.cliente).cli}</td>
+      <td>${timeToMesDiaShort(el.fechVent)}</td>
+      <td>
+        <span onclick="verUbi('${(el.cliente).id}')" class="icon ${mark}">
+      </td>
+      <td>
+        <span onclick="verPdf('${el.id}')" class="icon pdf1">
+      </td>
+    </tr>`
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("tablaPedidos")
+}
+
+async function verPdf(id){
+  let dataVenta = await read_ID_DB(id,'ventas')
+  localStorage.setItem("dataVenta",JSON.stringify(dataVenta))
+  ventaPdf()
+}
+
+async function verUbi(id){
+  let d = await read_ID_DB(id,'clientes')
+  if(d.ubi==undefined||d.ubi==""){ 
+    localStorage.setItem("cliID",id)
+    lnk('../delivery/agregarUbicacion')
+  }else{
+    let a = document.createElement("a");
+    a.href = d.ubi; 
+    a.click()
+  }
+}
+
+async function init_m(){ 
+  let fil = await storageJsonSetup("filvent",{"todoFecha":false,"fechaVentas":fecActInp(),"vendedores":"todos"})
+  document.getElementById("fechaVentas_Txt").textContent = fechaForma2(fil.fechaVentas) 
+  await renderTab()
+  openSocket("sincVEN");
+}      
+</script>
+</body>
+</html>

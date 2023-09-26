@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" >
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>EDITAR</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<style>
+.btn-material{width: 100px;padding: 7px;}
+</style>
+<body onload="startDB()">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="titMenu">FORMULARIO DE EDICION</div>
+  <span></span>
+</div>
+
+<div class="formularioV1">
+  <div class="contInput">
+    <input data-user id="nom" class="input_ef" type="text" placeholder=""/>
+    <label class="label_ef">Nombre</label>
+  </div>
+  <div class="txtAndSelector">
+    <div class="textSelec">Rol:</div> 
+    <div class="selectTip1">
+      <select class="selector" data-user id="rol">
+        <option value="Ninguno" selected>Ninguno</option>
+        <option value="Administrar">Administrar</option>
+        <option value="Vender">Vender</option>
+        <option value="Almacen">Almacen</option>
+        <option value="Delivery">Delivery</option>
+      </select>
+      <div class="select-icon">
+        <svg focusable="false" viewBox="0 0 104 128" width="25" height="35" class="icon">
+          <path d="m2e1 95a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm0-3e1a9 9 0 0 1 -9 9 9 9 0 0 1 -9 -9 9 9 0 0 1 9 -9 9 9 0 0 1 9 9zm14 55h68v1e1h-68zm0-3e1h68v1e1h-68zm0-3e1h68v1e1h-68z"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="botones">
+    <button class="btn-material verde" id="btnGuar" onclick="editar()">Editar</button>
+    <button class="btn-material red" id="btnGuar" onclick="eliminar()">Eliminar</button>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+let userIDedit
+
+async function editar(){
+  loadData() 
+  let edit = await form_to_json("user")
+  edit["id"] = userIDedit
+  let up = await apiPostJsonCrud("update",edit,"usuarios")
+  if(up.msg=="success"){ 
+    update_DB(userIDedit,edit,"usuarios").then(()=>{
+      successDat() 
+    }) 
+  }
+}
+
+async function eliminar(){
+  let r = prompt("esta seguro de eliminar ..?")
+  if(r=="si"){
+    loadData()
+    apiPostJsonCrud("delet",{"id":userIDedit},"usuarios").then((d)=>{
+      if(d.msg=="success"){ 
+        del_DB(userIDedit,'usuarios').then(()=>{ successDat("b") })
+      }
+    })
+  }
+}
+
+async function init_m(){
+  userIDedit = storage('userIDedit')
+  let al = await read_ID_DB(userIDedit,'usuarios')
+  await json_to_from("user",al)
+}
+</script>
+</body>
+</html>

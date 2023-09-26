@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../css/main.css">
+<title>descarga ventas</title>
+<style>
+.btn-material{width: 200px;padding: 10px; margin-top: -20px;}
+</style>
+</head>
+
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="titMenu">DESCARGA DE VENTAS</div>
+  <span></span>
+</div>
+<div class="formularioV1">
+  <div class="inputDate">
+    <span>Dia : </span>
+    <div>
+      <div id="buscarDia_Txt"></div>
+      <input data-alumno id="buscarDia" class="pickCalendar" onchange="buscarDia(event)" type='date'/>
+    </div>
+  </div>
+  <div class="botones">
+    <button class="btn-material verde" onclick="actualizar('dia')">Descargar Dia</button>
+  </div>
+</div>
+<div class="formularioV1">
+  <div class="inputDate">
+    <span>Semana : </span>
+    <div>
+      <div id="buscarWeek_Txt"></div>
+      <input data-alumno id="buscarWeek" class="pickCalendar" onchange="buscarWeek(event)" type='week'/>
+    </div>
+  </div>
+  <div class="botones">
+    <button class="btn-material verde" onclick="actualizar('sem')">Descargar Semana</button>
+  </div>
+</div>
+<div class="formularioV1">
+  <div class="inputDate">
+    <span>Mes : </span>
+    <div>
+      <div id="buscarMes_Txt"></div>
+      <input data-alumno id="buscarMes" class="pickCalendar" onchange="buscarMes(event)" type='month'/>
+    </div>
+  </div>
+  <div class="botones">
+    <button class="btn-material verde" onclick="actualizar('mes')">Descargar Mes</button>
+  </div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+let cel 
+let tipoDescarga
+async function actualizar(t){
+  loadData()
+  let f1
+  let f2 
+  if(t=="dia"){
+    f1 = new Date(document.getElementById("buscarDia").value) 
+    f2 = new Date(document.getElementById("buscarDia").value)
+  }
+  if(t=="sem"){
+    let ds = getDateOfIsoWeek(document.getElementById("buscarWeek").value)
+    f1 = new Date(ds["flun"]) 
+    f2 = new Date(ds["fdom"])
+  }
+  if(t=="mes"){
+    var date = new Date(document.getElementById("buscarMes").value);
+    f1 = new Date(date.getFullYear(), date.getMonth(), 1);
+    f2 = new Date(date.getFullYear(), date.getMonth() + 1, 0); 
+  }
+  let tim1 = new Date(f1.getFullYear(),f1.getMonth(),f1.getDate(),0,0,0).getTime();
+  let tim2 = new Date(f2.getFullYear(),f2.getMonth(),f2.getDate(),23,59,59).getTime();
+  console.log({tim1,tim2,cel})
+  let datCloud 
+  if(tipoDescarga=="admin"){
+    datCloud = await apiPostJsonRut("readTimeTime",{tim1,tim2})
+  }else{
+    datCloud = await apiPostJsonRut("readTimeTimeUser",{cel,tim1,tim2})
+  }
+  let datos = datCloud["record"]
+  console.log(datos)
+  for (let i = 0; i < datos.length; i++) {
+    await write_DB(datos[i],'ventas')
+    document.getElementById("conter").textContent = datos.length-i//animacion
+  }
+  successDat()
+}
+
+/**
+* Get the date from an ISO 8601 week and year
+* https://en.wikipedia.org/wiki/ISO_week_date
+* @param {number} week ISO 8601 week number
+* @param {number} year ISO year
+*  Examples:
+*  getDateOfIsoWeek(53, 1976) -> Mon Dec 27 1976
+*  getDateOfIsoWeek( 1, 1978) -> Mon Jan 02 1978
+*  getDateOfIsoWeek( 1, 1980) -> Mon Dec 31 1979
+*  getDateOfIsoWeek(53, 2020) -> Mon Dec 28 2020
+*  getDateOfIsoWeek( 1, 2021) -> Mon Jan 04 2021
+*  getDateOfIsoWeek( 0, 2023) -> Invalid (no week 0)
+*  getDateOfIsoWeek(53, 2023) -> Invalid (no week 53 in 2023)
+*/
+function getDateOfIsoWeek(d) {
+  let w = (d.split("-")[1].slice(1))
+  let y = d.split("-")[0]
+  week = parseFloat(w);
+  year = parseFloat(y);
+  if(week < 1 || week > 53) {
+    throw new RangeError("ISO 8601 weeks are numbered from 1 to 53");
+  }else if(!Number.isInteger(week)) {
+    throw new TypeError("Week must be an integer");
+  }else if(!Number.isInteger(year)) {
+    throw new TypeError("Year must be an integer");
+  }
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dayOfWeek = simple.getDay();
+  const isoWeekStart = simple;
+  // Get the Monday past, and add a week if the day was
+  // Friday, Saturday or Sunday.
+  isoWeekStart.setDate(simple.getDate() - dayOfWeek + 1);
+  if (dayOfWeek > 4){ isoWeekStart.setDate(isoWeekStart.getDate() + 7) }
+  // The latest possible ISO week starts on December 28 of the current year.
+  if (isoWeekStart.getFullYear()>year||(isoWeekStart.getFullYear()==year&&isoWeekStart.getMonth()==11&&isoWeekStart.getDate()>28)){
+    throw new RangeError(`${year} has no ISO week ${week}`);
+  }
+  var mes = isoWeekStart.getMonth()+1; //mes
+  var dia = isoWeekStart.getDate(); //dia
+  var ano = isoWeekStart.getFullYear(); //año
+  if(dia<10){dia='0'+dia}
+  if(mes<10){mes='0'+mes}
+  let flun = ano+"-"+mes+"-"+dia
+  let fm = new Date(flun)
+  fm.setDate(fm.getDate()+6)
+  var mes2 = fm.getMonth()+1; //mes
+  var dia2 = fm.getDate(); //dia
+  var ano2 = fm.getFullYear(); //año
+  if(dia2<10){dia2='0'+dia2}
+  if(mes2<10){mes2='0'+mes2}
+  let fdom = ano2+"-"+mes2+"-"+dia2
+  return ({flun,fdom});
+}  
+
+const numeroDeSemana = fecha => {
+  const DIA_EN_MILISEGUNDOS = 1000*60*60*24, DIAS_QUE_TIENE_UNA_SEMANA=7, JUEVES=4;
+  fecha = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
+  let diaDeLaSemana = fecha.getUTCDay(); // Domingo es 0, sábado es 6
+  if (diaDeLaSemana === 0) {diaDeLaSemana = 7;}
+  fecha.setUTCDate(fecha.getUTCDate() - diaDeLaSemana + JUEVES);
+  const inicioDelAño = new Date(Date.UTC(fecha.getUTCFullYear(), 0, 1));
+  const diferenciaDeFechasEnMilisegundos = fecha - inicioDelAño;
+  return Math.ceil(((diferenciaDeFechasEnMilisegundos/DIA_EN_MILISEGUNDOS)+1)/DIAS_QUE_TIENE_UNA_SEMANA);
+};
+
+function fecActInpSem(){
+  let d = new Date(fecActInp());
+  let week = numeroDeSemana(d)
+  let ano = d.getFullYear(); //año
+  if(week<10){week='0'+week}
+  return (ano+"-W"+week);
+}
+function fechaActualSemTxt(d){
+  let w = (d.split("-")[1].slice(1))
+  let y = d.split("-")[0]
+  let r = getDateOfIsoWeek(d)
+  let lun = parseInt(r.flun.split("-")[2]) 
+  let msLun = nombreMesesCorto[parseInt(r.flun.split("-")[1])]  
+  let dom = parseInt(r.fdom.split("-")[2])
+  let msDom = nombreMesesCorto[parseInt(r.fdom.split("-")[1])]
+  return (w+" - "+lun+"/"+msLun+" al "+dom+"/"+msDom+" "+y)
+}
+function fecActInpMes(){
+  let d = new Date(fecActInp());
+  let mes = d.getMonth()+1 //mes
+  if(mes<10){mes='0'+mes}
+  let ano = d.getFullYear(); //año
+  return (ano+"-"+mes);
+}
+
+function buscarDia(e){
+  localStorage.setItem("buscarDia",e.target.value)
+  init_m()
+}
+function buscarWeek(e){
+  localStorage.setItem("buscarWeek",e.target.value)
+  init_m()
+}
+function buscarMes(e){
+  localStorage.setItem("buscarMes",e.target.value)
+  init_m()
+}
+async function init_m(){ 
+  tipoDescarga = storage("tipoDescarga")
+  cel = storageJson("datUser")["cel"]  
+  document.getElementById("buscarDia_Txt").textContent = fechaForma2( storageDef("buscarDia",fecActInp()) ) 
+  document.getElementById("buscarDia").value = storageDef("buscarDia",fecActInp())
+  document.getElementById("buscarWeek_Txt").textContent = fechaActualSemTxt( storageDef("buscarWeek",fecActInpSem()) ) 
+  document.getElementById("buscarWeek").value = storageDef("buscarWeek",fecActInpSem())
+  document.getElementById("buscarMes_Txt").textContent = monthTOtxt(storageDef("buscarMes",fecActInp())) 
+  document.getElementById("buscarMes").value = storageDef("buscarMes",fecActInpMes())
+}
+</script>  
+</body>
+</html>

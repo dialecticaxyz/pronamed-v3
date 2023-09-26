@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos</title>
+<link href="/css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="titMenu">Numero de Nota</div>
+  <span></span>
+</div>  
+
+<div class="formularioV1">
+
+  <div class="contInput">
+    <input id="numNot" class="input_ef" type="number" placeholder=" " />
+    <label class="label_ef">NUMERO DE NOTA</label>
+  </div>
+
+  <div class="botones">
+    <div onclick="writeNumNot()" class="btn-material info">EDITAR</div> 
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+
+async function writeNumNot(){
+  var r = confirm("Esta Seguro de editar..?")
+  if(r){
+    loadData()
+    var num  =  document.getElementById("numNot").value
+    let crea = await apiPostJs("writeNumNota",{numNota:num})
+    if(crea=="write"){ successDat("r") }    
+  }
+}
+
+async function init_m(){ 
+  loadData()
+  let num = await apiPostJsonRut("readNumNota",{})
+  document.getElementById("numNot").value = num
+  successDat()
+}   
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Clientes</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.contInput{
+  width: 80%;
+  margin: auto;
+}
+#listClientes{
+  overflow-y: scroll;
+  height: calc(100vh - 270px);
+}
+.conTtarg{
+  background-color: rgb(245, 245, 245);
+  width: 90%;
+  margin: auto;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 6px;
+  position: relative;
+}
+.conTtarg>div{ margin: 8px;}
+.conTtarg span{font-weight: bolder;}
+.PlusBlack{
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="titMenu">CLIENTES</div>
+  <span class="icon pencilWite" onclick="editarCliente()"></span>
+</div>
+
+<div class="formularioV1" style="margin-top: -17px;">
+  <div class="textDataInf">
+    <div>CLIENTE :</div>
+    <div data-cli id="cli" ></div>
+  </div>
+  <div class="textDataInf">
+    <div>NIT :</div>
+    <div data-cli id="nit" ></div>
+  </div>
+  <div class="textDataInf">
+    <div>Celular :</div>
+    <div data-cli id="cel" ></div>
+  </div>
+  <div class="textDataInf">
+    <div>Zona :</div>
+    <div data-cli id="zona" ></div>
+  </div>
+  <div class="textDataInf">
+    <div>Direccion :</div>
+    <div data-cli id="dir" ></div>
+  </div>
+</div>
+
+<div class="contInput">
+  <input id="buscar" onkeyup="filtroBus()" class="input_ef" type="text" autocomplete="off"/>
+</div>
+
+<div id="listClientes"></div>
+
+<script src="../js/main.js"></script>
+<script>
+var datVen
+var items = []  
+async function cargarClientes(){
+  let dat = await read_DB('clientes')
+  var outerHTML = `
+  <div class="conTtarg" id="nn">
+    <span class="icon PlusBlack" onclick="selectCli('Ninguno')"></span>
+    <div>Cliente : <span>NINGUNO</span></div>
+    <div>Nit : <span></span></div>
+    <div>Celular : <span></span></div>
+    <div>Direccion : <span></span></div>
+  </div>`;
+  items.push({"id":"nn","txt":"NINGUNO"}) 
+  for (let i = 0; i< dat.length; i++) {
+    const et = dat[i];
+    outerHTML += `
+    <div class="conTtarg" id="${et.id}">
+      <span class="icon PlusBlack" onclick="selectCli('${et.id}')"></span>
+      <div>Cliente : <span>${et.cli}</span></div>
+      <div>Nit : <span>${et.nit}</span></div>
+      <div>Celular : <span>${et.cel}</span></div>
+      <div>Direccion : <span>${et.dir}</span></div>
+    </div>` 
+    items.push({"id":et.id,"txt":et.cli})  
+  }
+  document.querySelector("#listClientes").innerHTML = outerHTML;
+}
+
+async function selectCli(cli){
+  let clin
+  if(cli=="Ninguno"){ 
+    clin = {cli:"Ninguno",cel:"",dir:"",nit:"",zona:""} 
+  }else{
+    console.log(cli)
+    const d = await read_ID_DB(cli,'clientes')
+    clin = {id:d.id,cli:d.cli,cel:d.cel,dir:d.dir,nit:d.nit,zona:d.zona}
+  }
+  datVen["cliente"] = clin
+  localStorage.setItem("dataVenta",JSON.stringify(datVen))
+  await json_to_from("cli",clin)
+}
+
+async function init_m(){
+  cargarClientes()
+  datVen = storageJson('dataVenta')
+  var clin = datVen["cliente"]==undefined?{cli:"Ninguno",cel:"",dir:"",nit:"",zona:""}:datVen["cliente"]
+  await json_to_from("cli",clin)
+}
+</script>
+</body>
+</html>

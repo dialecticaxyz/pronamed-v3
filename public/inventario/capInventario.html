@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVENTARIO</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.contItemDat{display: flex;padding: 10px; justify-content: space-around;}
+.txTit{padding: 5px;font-weight: bold;}
+.conDat{text-align: center;}
+.contenTable{height: calc(100vh - 150px);}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('inventarios','m')" class="icon cloudDowRed"></span>
+  </div>
+  <div class="titMenu">CAPITAL</div>  
+  <span onclick="listVer()" class="icon menuBurger"></span>  
+</div>   
+
+<div class="buscador">
+  <input class="input_ef" size="10" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar Producto">  
+  <span class="icon  BORRAR" onclick="limpiarBus()"></span>
+</div>
+
+<div class="secionCheck">
+  <div id="contedOcultador" class="contedOcultador"></div>
+</div>
+
+<div class="contenTable">
+  <table  onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th onclick="renderDatos(true,'txt','produ')">Producto</th>
+        <th onclick="renderDatos(true,'txt','marca')">Marca</th>
+        <th onclick="renderDatos(true,'txt','unidad')">Unidad <br> Medida</th>
+        <th onclick="renderDatos(true,'num','puComp')">PU <br> Compra</th>
+        <th onclick="renderDatos(true,'num','cant')">Dis.</th>
+        <th>Capital</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<div class="contItemDat">
+  <div class="conDat">
+    <div class="txTit">items</div>
+    <div id="cantItem"></div>
+  </div>
+  <div class="conDat">
+    <div class="txTit">Capital</div>
+    <div><span id="cantCapt"></span> Bs.</div></div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var items = []
+async function renderTab(ord,typ,elm){
+  let dat = await read_DB('inventarios')
+  dat = await sortTable(ord,typ,elm,dat)
+  let capital = 0
+  var outerHTML = '';
+  for (let i = 0; i < dat.length; i++){
+    const el= dat[i];
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${el.produ}</td>
+      <td>${el.marca}</td>
+      <td>${el.unidad}</td>
+      <td>${(el.puComp).toFixed(1)}</td>
+      <td>${el.cant}</td>
+      <td class="bs">${((el.puComp)*(el.cant)).toFixed(1)}</td>
+    </tr>` 
+    capital +=(el.puComp)*(el.cant)
+    items.push({"id":el.id,"txt":el.produ})    
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("inventario") 
+  filtroBus()
+  
+  document.getElementById("cantItem").textContent = dat.length
+  document.getElementById("cantCapt").textContent = capital.toFixed(1)
+}
+
+function init_m(){
+  document.getElementById("buscar").value = storage("buscar")
+  renderTab()
+  openSocket("sincINV");
+}   
+</script>
+</body>
+</html>

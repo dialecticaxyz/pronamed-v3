@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLIENTES</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.menuSvg{margin-left: 50px;}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('clientes','m')" class="icon cloudDowGrend"></span>
+  </div>
+  <div class="titMenu">CLIENTES</div>
+  <span onclick="listVer()" class="icon menuBurger"></span>  
+</div> 
+
+<div class="buscador">
+  <input class="input_ef" size="10" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar Nombre">  
+</div>
+
+<div class="secionCheck">
+  <div id="contedOcultador" class="contedOcultador"></div>
+</div>
+
+<div class="contenTable">
+  <table onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th onclick="sortTable('cli','str')">N°</th>
+        <th onclick="sortTable('cli','str')">Cliente</th>
+        <th onclick="sortTable('cel','str')">Celular</th>
+        <th onclick="sortTable('dir','str')">Direccion</th>
+        <th onclick="sortTable('zona','int')">Zona</th>
+        <th onclick="sortTable('nit','str')">Nit</th>
+        <th>Edit.</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var items = []
+var dat
+async function leerDatos(){
+  dat = await read_DB('clientes')
+  var outerHTML = '';
+  for (let i = 0; i < dat.length; i++){
+    const el= dat[i];
+    let mark = "mapMarkedGre"
+    if(el.ubi==undefined||el.ubi==""){ mark = "mapMarkedRed" }
+    outerHTML += 
+    `<tr id='${el.id}'>
+      <td>${i+1}</td>
+      <td>${el.cli}</td>
+      <td>${el.cel}</td>
+      <td>${el.dir}</td>
+      <td>${el.zona}</td>
+      <td>${el.nit}</td>
+      <td>
+        <span onclick="editar('${el.id}')" class="icon ${mark}">
+      </td>
+    </tr>` 
+    items.push({"id":el.id,"txt":el.cli})    
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("clientes") 
+}
+
+async function editar(id){
+  let d = await read_ID_DB(id,'clientes')
+  if(d.ubi==undefined||d.ubi==""){ 
+    localStorage.setItem("cliID",id)
+    lnk('agregarUbicacion')
+  }else{
+    let a = document.createElement("a");
+    a.href = d.ubi; 
+    a.click()
+  }
+}
+
+function init_m(){
+  leerDatos()
+}   
+</script>
+</body>
+</html>

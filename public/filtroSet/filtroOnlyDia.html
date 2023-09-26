@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" >
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>FILTRO</title>
+<link rel="stylesheet" href="/css/estilos.css">
+</head>
+<style>
+.info{width: 100px;}
+</style>
+<body onload="startDB()">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+</div> 
+
+<div class="formularioV1">
+  <div class="inputDate">
+    <span>Fecha.</span>
+    <div>
+      <div id="fechaVentas_Txt"></div>
+      <input data-filvent id="fechaVentas" onchange="saveText(event)" class="pickCalendar" type='date'/>      
+    </div>
+  </div>
+  <div class="txtCheckbox">
+    <div>Dias: </div>
+    <label class="todoFecha" for="todoFecha">
+      Todos <input data-filvent type="checkbox" onchange="checkbox(event)" id="todoFecha" >
+    </label>
+  </div>
+  
+  <div class="botones">
+    <button class="btn-material info" id="btnGuar" onclick="window.history.back()">Filtrar</button>
+  </div>
+</div>
+
+<script src="/js/mainDB.js"></script>
+<script>
+async function init_m(){
+  setTimeout(async()=>{
+    let fil = await storageJsonSetup("filvent",{"todoFecha":false,"fechaVentas":fecActInp()})
+    await json_to_from("filvent",fil)
+  },100)
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Clientes</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.info{width: 160px;} 
+.coordenadas{
+  display: flex;
+  justify-content: space-between;
+}
+.coordenadas>div{ width:  140px;}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="titMenu">DATOS DEL CLIENTE</div>
+  <span onclick="sincroCLI()" class="icon cloud-download-alt"></span>
+</div>
+
+<div class="formularioV1">
+  <div class="textDataInf2">
+    <div>Cliente :</div>
+    <div data-cli id="cli" ></div>
+  </div>
+  <div class="textDataInf2">
+    <div>NIT :</div>
+    <div data-cli id="nit" ></div>
+  </div>
+  <div class="textDataInf2">
+    <div>Celular :</div>
+    <div data-cli id="cel" ></div>
+  </div>
+  <br>
+  <div class="contInput">
+    <input data-cli id="dir" class="input_ef" type="text" placeholder=" " />
+    <label class="label_ef">Direccion :</label>
+  </div>
+  <div class="contInput">
+    <input data-cli id="ubi" class="input_ef" type="text" placeholder=" " />
+    <label class="label_ef">Ubicacion Google Maps</label>
+  </div>
+  <div class="coordenadas">
+    <div class="contInput">
+      <input data-cli id="lat" class="input_ef" type="number" placeholder=" " />
+      <label class="label_ef">Latitud</label>
+    </div>
+    <div class="contInput">
+      <input data-cli id="log" class="input_ef" type="number" placeholder=" " />
+      <label class="label_ef">Longitud</label>
+    </div>
+  </div>
+  <div class="botones">
+    <div onclick="actualizar()" class="btn-material info">Actualizar Datos</div> 
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var cliID
+
+async function actualizar(){
+  var r = confirm("Actualizar Datos..?")
+  if(r){
+    loadData()
+    let lat = parseFloat(document.getElementById("lat").value) 
+    let log = parseFloat(document.getElementById("log").value)
+    let ubi = document.getElementById("ubi").value
+    let dir = document.getElementById("dir").value 
+    let rs = await apiPostJsonCrud("update",{"id":cliID,"lat":lat,"log":log,"ubi":ubi,"dir":dir},"clientes")
+    if(rs.msg=="success"){
+      update_DB(cliID,{"lat":lat,"log":log,"ubi":ubi,"dir":dir},'clientes').then(()=>{ successDat() })
+    }
+  }
+}
+
+async function init_m(){
+  cliID = storage("cliID")
+  let cliDat = await read_ID_DB(cliID,'clientes')
+  json_to_from("cli",cliDat)
+
+  navigator.geolocation.getCurrentPosition((position)=>{
+    document.getElementById("lat").value = position.coords.latitude
+    document.getElementById("log").value = position.coords.longitude
+  });
+}
+</script>
+</body>
+</html>

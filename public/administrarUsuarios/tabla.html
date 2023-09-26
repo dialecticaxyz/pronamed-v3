@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" >
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Lista Usuarios</title>
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<style>
+</style>
+<body onload="startDB()">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div onclick="lnk('formReg')" class="btn-material">Nuevo Usuario</div> 
+  <span class="icon cloudDow" onclick="sincroBD('usuarios','m')"></span>
+</div>
+
+<div class="buscador">
+  <input class="input_ef" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar por Nombre">  
+</div>
+
+<div class="contenTable" >
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Rol</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var items =[]
+async function renderTabla(){
+  let dat = await read_DB("usuarios")
+  let outerHTML = '';
+  for (let i = 0; i < dat.length; i++) {
+    let el = dat[i];
+    outerHTML+=`
+    <tr id="${el.id}">
+      <td data-itm id="ref_${el.id}">${el.nom}</td>
+      <td >${el.rol}</td>
+      <td>
+        <span onclick="editarUser('${el.id}')" class="icon PEN">
+      </td>
+    </tr>`
+    items.push({"id":el.id,"txt":el.nom}) 
+  }
+  document.getElementById("listaDitem").innerHTML = outerHTML 
+}
+
+function editarUser(id){
+  localStorage.setItem('userIDedit', id);
+  lnk("formEdit")
+}
+
+function init_m(){  
+  renderTabla() 
+}
+</script>
+</body>
+</html>

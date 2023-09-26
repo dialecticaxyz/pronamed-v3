@@ -1,0 +1,33 @@
+/******* menu *******/
+.conteMenu{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  background-color: #808080;
+  color: white;
+  position: relative;
+}
+.back{
+  background-image: url("data:image/svg+xml;charset=utf8, %3Csvg fill='rgb(255, 255, 255)' viewBox='0 0 448 512' xmlns='http://www.w3.org/2000/svg'%3E    %3Cpath d='M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+.cajaIzq{
+  width: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.titMenu{
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.menuBurger{
+  background-image: url("data:image/svg+xml;charset=utf8, %3Csvg fill='rgb(255, 255, 255)' viewBox='0 0 612 612' xmlns='http://www.w3.org/2000/svg'%3E    %3Cpath d='M61.2,122.4h489.6c33.782,0,61.2-27.387,61.2-61.2S584.613,0,550.8,0H61.2C27.387,0,0,27.387,0,61.2 S27.387,122.4,61.2,122.4z M550.8,244.8H61.2C27.387,244.8,0,272.187,0,306c0,33.812,27.387,61.2,61.2,61.2h489.6 c33.782,0,61.2-27.388,61.2-61.2C612,272.187,584.613,244.8,550.8,244.8z M550.8,489.6H61.2C27.387,489.6,0,516.987,0,550.8 C0,584.613,27.387,612,61.2,612h489.6c33.782,0,61.2-27.387,61.2-61.2C612,516.987,584.613,489.6,550.8,489.6z' fill-rule='evenodd'/%3E%3C/svg%3E");
+  margin-left: 15px;
+}
+.fechaMenu{color: white;font-weight: bold;}
+/******* menu *******/

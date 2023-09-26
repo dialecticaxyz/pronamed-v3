@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clientes</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <div class="cajaIzq">
+    <span class="icon back" onclick="window.history.back()"></span>
+    <span id="conection" onclick="sincroBD('clientes','m')" class="icon cloudDowGrend"></span>
+  </div>
+  <div onclick="lnk('formReg_clientes')" class="btn-material">Nuevo Cliente</div> 
+  <div>
+    <span onclick="descargaExel()" class="icon fileExel"></span>
+    <span onclick="listVer()" class="icon menuBurger"></span>  
+  </div>
+</div>   
+
+<div class="buscador">
+  <input class="input_ef" size="10" type="text" id="buscar" onkeyup="filtroBus()" placeholder="Buscar Producto">  
+</div>
+
+<div class="secionCheck">
+  <div id="contedOcultador" class="contedOcultador"></div>
+</div>
+
+<div class="contenTable">
+  <table  onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th onclick="renderDatos(true,'txt','cli')">Cliente</th>
+        <th onclick="renderDatos(true,'txt','cel')">Celular</th>
+        <th onclick="renderDatos(true,'txt','dir')">Direccion</th>
+        <th onclick="renderDatos(true,'txt','zona')">Zona</th>
+        <th onclick="renderDatos(true,'txt','nit')">Nit</th>
+        <th>Edit.</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+<script src="../jsEx/filesaver.js"></script>
+<script src="../jsEx/xlsx.full.min.js"></script>
+<script src="../js/main.js"></script>
+<script>
+var items = []
+var dat
+async function renderTab(ord,typ,elm){
+  dat = await read_DB('clientes')
+  dat = await sortTable(ord,typ,elm,dat)
+  var outerHTML = '';
+  for (let i = 0; i < dat.length; i++){
+    const el= dat[i];
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${el.cli}</td>
+      <td>${el.cel}</td>
+      <td>${el.dir}</td>
+      <td>${el.zona}</td>
+      <td>${el.nit}</td>
+      <td>
+        <span onclick="editar('${el.id}')" class="icon PEN">
+      </td>
+    </tr>` 
+    items.push({"id":el.id,"txt":el.cli})    
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("clientes") 
+  filtroBus()
+}
+
+function editar(id){
+  localStorage.setItem('idCliente', id);
+  lnk('formEdit_clientes')
+}
+
+function init_m(){
+  renderTab()
+}   
+/*********** EXCEL GENERADOR *********/
+const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+const EXCEL_EXTENSION = '.xlsx';
+let datExel = []
+function descargaExel(){
+  for (let i = 0; i < dat.length; i++) {
+    const el = dat[i];
+    datExel.push({
+      "N°": (i+1),
+      "Cliente": el.cli,
+      "Celular": el.cel,
+      "Direccion": el.dir,
+      "Zona": el.zona,
+      "Nit": el.nit,
+    })
+  }
+  const worksheet = XLSX.utils.json_to_sheet(datExel)
+  const workbook = {
+    Sheets :{"data":worksheet},
+    SheetNames : ["data"]
+  }
+  const exelbuffer = XLSX.write(workbook,{bookType:"xlsx",type:"array"})
+  saveAsExel(exelbuffer,"clientes")
+}
+function saveAsExel(buffer,filename){
+  const data = new Blob([buffer],{type:EXCEL_TYPE})
+  saveAs(data,filename)
+}
+/*********** EXCEL GENERADOR *********/
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVENTARIO</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.info{width: 100px;} 
+.danger{width: 170px;} 
+.ajusteInv{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 10px;
+}
+.ajusteInv input{ width: 100px; }
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <span></span>  
+</div> 
+
+<div class="formularioV1">
+  <div class="textDataInf2">
+    <div>Usuario que actualizo :</div>
+    <div data-itemN id="userUp" ></div>
+  </div>
+  <div class="textDataInf2">
+    <div>Fecha ultima actualizacion :</div>
+    <div data-itemN="fechTxtFull" id="timeUp" ></div>
+  </div>
+
+  <div class="textDataInf2">
+    <div>Marca :</div>
+    <div data-itemN id="marca" ></div>
+  </div>
+  <div class="textDataInf2">
+    <div>Producto :</div>
+    <div data-itemN id="produ" ></div>
+  </div>
+  <div class="textDataInf2">
+    <div>Unidad de Medida :</div>
+    <div data-itemN id="unidad" ></div>
+  </div>
+  <br>
+
+  <div class="ajusteInv">
+    <div class="contInput">
+      <input data-itemN id="cant" class="input_ef" type="number" placeholder=" " />
+      <label class="label_ef">Cantidad</label>
+    </div>
+    <button onclick="editarItem()" class="btn-material danger">Editar Cantidad</button>
+  </div>
+
+  <div class="ajusteInv">
+    <div class="contInput">
+      <input id="ajuste" class="input_ef" type="number" placeholder=" " />
+      <label class="label_ef">Ajuste</label>
+    </div>
+    <button onclick="mas_compra()" class="btn-material info">MAS</button>
+    <button onclick="menos_vender()" class="btn-material info">MENOS</button>
+  </div>
+
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+var idItem 
+
+/** editar item solo datos **/
+async function editarItem(){
+  let r = confirm("Esta Seguro de editar..?")
+  if(r){
+    loadData()
+    let dat = await form_to_json('itemN')
+    dat["timeUp"] = new Date().getTime()
+    dat["userUp"] = storageJson("datUser").nom
+    dat["id"] = idItem
+    let rs = await apiPostJsonCrud("update",dat,"inventarios")
+    if(rs.msg=="success"){
+      update_DB(idItem,dat,'inventarios').then(()=>{ 
+        sendMessage().then(()=>{ successDat("r") })
+      })
+    }
+  }
+}
+/** editar item solo datos **/
+/* menos */
+async function menos_vender(){
+  let r = confirm("Esta Seguro de Reducir..?")
+  if(r){
+    loadData()
+    let dat = {}
+    dat["timeUp"] = new Date().getTime()
+    dat["userUp"] = storageJson("datUser").nom
+    dat["id"] = idItem
+    dat["ajuste"] = ValNum("ajuste") 
+    let rs = await apiPostJsonRut("itemCantMenos",dat)
+    if(rs.msg=="success"){
+      dat["cant"] = rs.cant
+      update_DB(idItem,dat,'inventarios').then(()=>{ 
+        sendMessage().then(()=>{ successDat("r"); }) 
+      })
+    }
+  }
+}  
+/* menos */
+/* mas */
+async function mas_compra(){
+  let r = confirm("Esta Seguro de Incrementar..?")
+  if(r){
+    loadData()
+    let dat = {}
+    dat["timeUp"] = new Date().getTime()
+    dat["userUp"] = storageJson("datUser").nom
+    dat["id"] = idItem
+    dat["ajuste"] = ValNum("ajuste")
+    let rs = await apiPostJsonRut("itemCantMas",dat)
+    if(rs.msg=="success"){
+      dat["cant"] = rs.cant
+      update_DB(idItem,dat,'inventarios').then(()=>{
+        sendMessage().then(()=>{ successDat("r"); }) 
+      })
+    }
+  }
+}  
+/* mas */
+
+async function init_m(){
+  idItem = storage("idItem")
+  let item = await read_ID_DB(idItem,'inventarios')
+  await json_to_from("itemN",item)
+  openSocket()
+}
+</script> 
+</body>
+</html>

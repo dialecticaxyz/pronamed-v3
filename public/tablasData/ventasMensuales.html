@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VENTAS MENSUALES</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.contenTable{ height: calc(100vh - 50px);}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div class="texTitulo"> VENTAS : <span id="fechaVentas_Txt"></span></div>
+  <div>
+    <span class="icon filter" onclick="filtroMes()"></span>
+    <span onclick="listVer()" class="icon menuBurger"></span>  
+  </div>
+</div> 
+<div id="contedOcultador" class="contedOcultador"></div>
+
+<div class="contenTable">
+  <table onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th>Vendedor</th>
+        <th onclick="renderVentas(true,'txt','fechVent')" >fecha <span class="of"></span></th>
+        <th>Total</th>
+        <th>Capt.</th>
+        <th>Util.</th>
+        <th>ver</th>
+        <th>pdf</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+    <tfoot id="tfootColm">
+      <tr>
+        <th></th>
+        <th></th>
+        <th>Total</th>
+        <th id="totalTab"></th>
+        <th id="capitTab"></th>
+        <th id="utiliTab"></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+
+var listVen = []
+async  function datosVentas(){
+  listVen = []
+  let dat = await read_DB('ventas')
+  //filtro
+  let df = await storageJsonSetup("filmes",{"fechaVentas":month(),"vendedores":"todos"})
+  document.getElementById("fechaVentas_Txt").textContent = monthTOtxt(df.fechaVentas) 
+  for (let i = 0; i < dat.length; i++) {
+    const el = dat[i];
+    let f1 = await itemFilter(timToMontfYear(dat[i]["fechVent"]),false,df["fechaVentas"],listVen,el)
+    if(!f1){ continue }  
+    let f2 = await itemFilter((el.dataVenden)["nom"],(df["vendedores"]=="todos"),df["vendedores"],listVen,el)
+    if(!f2){ continue }
+  }
+  //filtro
+
+  //totales tabla
+  let totalTab = 0
+  let capitTab = 0
+  let utiliTab = 0
+  //totales tabla
+  var outerHTML = '';
+  for (let i = 0; i < listVen.length; i++) {
+    //calculo capital
+    let capVent = 0
+    let prof = listVen[i].proforma
+    for (const key in prof) {
+      const item = prof[key];
+      capVent += (item.puComp)*(item.cant)  
+    }
+    //calculo capital
+    let el = listVen[i];
+    let util = el.total-capVent
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${(el.dataVenden).nom}</td>
+      <td>${timeToMesDia(el.fechVent)}</td>
+      <td class="bs">${el.total}</td>
+      <td class="bs">${capVent.toFixed(1)}</td>
+      <td class="bs">${util.toFixed(1)}</td>
+      <td>
+        <span onclick="ver('${el.id}','info')" class="icon Eyes">
+      </td>
+      <td>
+        <span onclick="ver('${el.id}','pdf')" class="icon pdf1">
+      </td>
+    </tr>`
+    totalTab += el.total
+    capitTab += capVent
+    utiliTab += util
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  manejoColumnas("tablaPedidos")
+
+  document.getElementById("totalTab").textContent = totalTab.toFixed(1)
+  document.getElementById("capitTab").textContent = capitTab.toFixed(1)
+  document.getElementById("utiliTab").textContent = utiliTab.toFixed(1)
+}
+
+async function ver(id,t){
+  let dataVenta = await read_ID_DB(id,'ventas')
+  localStorage.setItem("dataVenta",JSON.stringify(dataVenta))
+  if(t=="info"){ventaInfo()}else{ventaPdf()}
+}
+
+function init_m(){
+  datosVentas()
+}    
+</script>    
+</body>
+</html>

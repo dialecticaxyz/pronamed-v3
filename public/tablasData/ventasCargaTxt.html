@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos</title>
+<link href="../css/main.css" rel="stylesheet" type="text/css" media="all" />
+<style>
+.bs{text-align: end;}
+.contenTable{ height: calc(100vh - 100px);}
+#semana_Txt{color: white;}
+.btn-material{padding: 2px;}
+</style>
+</head>
+<body onload="startDB();">
+<div class="conteMenu">
+  <span class="icon back" onclick="window.history.back()"></span>
+  <div id="semana_Txt">Fecha</div>
+  <div>
+    <span>
+      <label for="archivo" class="btn-material">Cargar Achivo</label>
+      <input type="file" name="archivo" id="archivo" onchange="verArc(event)" style="display: none;">
+    </span>
+    <span onclick="listVer()" class="icon menuBurger"></span>  
+  </div> 
+</div>  
+
+<div id="contedOcultador" class="contedOcultador"></div>
+
+<div class="contenTable">
+  <table onclick="oculVer()">
+    <thead>
+      <tr id="headColm">
+        <th>N°</th>
+        <th onclick="sortVent()">Vendedor</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th onclick="sortFech()">fecha</th>
+        <th>ver</th>
+        <th>pdf</th>
+      </tr>
+    </thead>
+    <tbody id="listaDitem"></tbody>
+  </table>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+let dataTx
+function verArc(e){
+  var archivo = e.target.files[0];
+  if (!archivo) { return; }
+  var lector = new FileReader();
+  lector.onload = function(e) {
+    var contenido = e.target.result;
+    dataTx = JSON.parse(contenido)
+    localStorage.setItem("dataTx",contenido)
+    render();
+    document.getElementById("semana_Txt").textContent = archivo.name
+  };
+  lector.readAsText(archivo)
+}
+
+var items
+async function render(){
+  dataTx.sort(((a, b) => b.fechVent - a.fechVent));
+  var outerHTML = '';
+  for (let i = 0; i < dataTx.length; i++) {
+    const el = dataTx[i];
+    outerHTML += 
+    `<tr id="${el.id}">
+      <td>${i+1}</td>
+      <td>${(el.dataVenden).nom}</td>
+      <td data-itm id="ref_${el.id}">${(el.cliente).cli}</td>
+      <td class="bs">${el.total}</td>
+      <td>${timeToMesDia(el.fechVent)}</td>
+      <td>
+        <span onclick="ver('${el.id}','info')" class="icon Eyes">
+      </td>
+      <td>
+        <span onclick="ver('${el.id}','pdf')" class="icon pdf1">
+      </td>
+    </tr>`
+  }
+  document.querySelector("#listaDitem").innerHTML = outerHTML;
+  items = document.querySelectorAll('[data-itm]')
+  manejoColumnas("archivo")
+}
+async function ver(idVent,t){
+  for (let i = 0; i < dataTx.length; i++) {
+    const el = dataTx[i];
+    if(el.id==idVent){
+      localStorage.setItem("dataVenta",JSON.stringify(el))
+      if(t=="info"){ventaInfo()}else{ventaPdf()}
+    }
+  }
+}
+
+async function guardar(){///funcion no activada//
+  loadData()
+  for (let i = 0; i < dataTx.length; i++) {
+    let item = dataTx[i];
+    let v_reg = await write_DB(item,'ventas')
+    let arch = await write_DB(item,'archivo')
+  }
+  successDat()
+}
+
+function init_m(){
+  dataTx = storageJson("dataTx")
+  if(Object.keys(dataTx).length != 0){render()}
+}   
+</script>
+</body>
+</html>
