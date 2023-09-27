@@ -11,7 +11,6 @@
   padding: 10px;
 }
 #capac{font-weight: bold;}
-
 .odometro{
   position: relative;
   max-width: 300px;
@@ -34,12 +33,12 @@ canvas {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
 #chart {
   width: 100%;
   margin-bottom: 15px;
 }
 .foot{font-weight: bold;}
+
 </style>
 </head>
 <body onload="startDB();">
@@ -63,7 +62,7 @@ canvas {
     <tr>
       <th>Datos</th>
       <th>Tamaño</th>
-      <th >Registros</th>
+      <th>Registros</th>
     </tr>
   </thead>
   <tbody>
@@ -88,6 +87,16 @@ canvas {
       <td id="cliCan"></td>
     </tr>
     <tr class="foot">
+      <td>Datos</td>
+      <td id="dat"></td>
+      <td></td>
+    </tr>
+    <tr class="foot">
+      <td>Disco</td>
+      <td id="dis"></td>
+      <td></td>
+    </tr>
+    <tr class="foot">
       <td>TOTAL</td>
       <td id="tot"></td>
       <td></td>
@@ -95,6 +104,13 @@ canvas {
   </tbody>
 </table>
 <br>  
+<div class="formularioV1">
+  <div class="botones">
+    <button onclick="clearDisk()" class="btn-material red">LIMPIAR ARCHIVOS TEMPORALES DISCO</button>
+  </div>
+</div>
+
+
 <script src="/js/main.js"></script>
 <script src="/jsPdf/d3.min.js"></script>
 <script>
@@ -217,31 +233,36 @@ setTimeout(()=>{
 },3000)
 /*odometro*/
 
-let CapacidadMegas = 10 //MB
+let CapacidadMegas = 150 //MB
 document.getElementById("capac").textContent = CapacidadMegas
 let limit = CapacidadMegas*1024*1024 
 async function datos(){
   loadData()
   let dt = await apiPostJsonRut("sizeDB",{}) //bytes
+  let dk = await apiPostJsonRut("readDisk",{}) //bytes
+  let disk = parseInt((dk["disk"]).match(/(\d+)/)[0])*1024 
   successDat()
   setTimeout(()=>{
-    let tot = dt.inv + dt.use + dt.ven + dt.cli
-  
+    let tot = dt.inv + dt.use + dt.ven + dt.cli + disk
+      
     document.getElementById("ven").textContent = fileSize(dt.ven)
     document.getElementById("inv").textContent = fileSize(dt.inv)
     document.getElementById("usu").textContent = fileSize(dt.use)
     document.getElementById("cli").textContent = fileSize(dt.cli)
+    document.getElementById("dat").textContent = fileSize(dt.inv+dt.use+dt.ven+dt.cli)
+    document.getElementById("dis").textContent = fileSize(disk)
     document.getElementById("tot").textContent = fileSize(tot)
-
+    
     document.getElementById("venCan").textContent = (dt.cVen)
     document.getElementById("invCan").textContent = (dt.cInv)
     document.getElementById("usuCan").textContent = (dt.cUse)
     document.getElementById("cliCan").textContent = (dt.cCli)
-
+    
     let data = [
       {name:'Ventas',math: ((dt.ven/tot)*100)},
       {name:'Inventario',math: ((dt.inv/tot)*100)},
       {name:'Usuarios',math: ((dt.use/tot)*100)},
+      {name:'Disco',math: ((disk/tot)*100)},
     ];
     
     let por = parseFloat(((tot/limit)*100).toFixed(1))
@@ -250,6 +271,15 @@ async function datos(){
     render(data)
   },1500)
 } 
+
+async function clearDisk(){
+  let r = confirm("Limpiar..?")
+  if(r){
+    loadData()
+    let rs = await apiPostJsonRut("clearDisk",{})
+    if(rs.msg=="success"){ successDat("r"); }
+  }
+}
 
 function init_m(){
   datos()

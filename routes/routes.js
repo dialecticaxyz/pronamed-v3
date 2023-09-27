@@ -37,5 +37,7 @@ router.post("/itemCantMas",midFun.verifyAdminAlma, invFun.itemCantMas);
 router.post("/sizeDB",midFun.verifyLog, admFun.sizeDB);
 router.post("/readNumNota",midFun.verifyLog, admFun.readNumNota);
 router.post("/writeNumNota",midFun.verifyLog, admFun.writeNumNota);
+router.post("/readDisk",midFun.verifyLog, admFun.readDisk);
+router.post("/clearDisk",midFun.verifyLog, admFun.clearDisk);
 
 module.exports = router;

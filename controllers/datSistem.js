@@ -2,6 +2,7 @@ const {LocalStorage} = require("node-localstorage");
 const localStorage = new LocalStorage('./localStorage');
 let fs = require('fs');
 const {countDB} = require('../apiNedb/crudDb.js');
+const { exec } = require('child_process');
 
 function readNumNota(req, resp){
   let numNota = localStorage.getItem('numNota')
@@ -31,9 +32,22 @@ async function sizeDB(req,rsp){
   let cli = await readFile("clientes.dat")
   rsp.send({inv,use,ven,cli,cInv,cUse,cVen,cCli})
 }
-
+function readDisk(req, resp){
+  let disk = localStorage.getItem('disk')
+  resp.send({disk})
+};
+function clearDisk(req,resp){
+  exec('rm -rf .git', (error, stdout, stderr) => {
+    if(error){console.error(`error: ${error.message}`); resp.send({msg:"fail"}) }
+    if (stderr) { console.error(`stderr: ${stderr}`); resp.send({msg:"fail"})   }
+    console.log(stdout);
+    resp.send({msg:"success"})
+  });
+};
 module.exports = {
   sizeDB,
   readNumNota,
-  writeNumNota
+  writeNumNota,
+  readDisk,
+  clearDisk
 }

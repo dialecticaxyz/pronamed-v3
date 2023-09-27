@@ -4,6 +4,9 @@ const express = require('express');
 const app = express();
 const wsServer = require('express-ws')(app); 
 const router = require('./routes/routes.js');
+const {LocalStorage} = require("node-localstorage");
+const localStorage = new LocalStorage('./localStorage');
+const { exec } = require('child_process');
 
 let clients = new Array;
 function handleWs(ws, request) {
@@ -35,4 +38,10 @@ app.ws('/', handleWs);
 
 const server = app.listen(app.get('port'),()=>{ 
   console.log("http://127.0.0.1:"+server.address().port) 
+  exec('du -s', (error, stdout, stderr) => {
+    if(error){console.error(`error: ${error.message}`); return; }
+    if (stderr) { console.error(`stderr: ${stderr}`);  return;  }
+    console.log(stdout);
+    localStorage.setItem('disk', stdout)
+  });
 });

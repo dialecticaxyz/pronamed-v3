@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>REGISTRAR</title>
-<link rel="stylesheet" href="css/estilos.css">
+<link rel="stylesheet" href="css/main.css">
 </head>
 <style>
 .btn-material{width: 180px;padding: 7px;}
+.conteMenu{height: 50px;}
 </style>
 <body onload="startDB()">
 <div class="conteMenu">
@@ -30,9 +31,9 @@
   </div>
 </div>
 
-<script src="../js/mainDB.js"></script>
+<script src="js/main.js"></script>
 <script>
-let url = location.href.split("/")[0]+"//"+location.href.split("/")[2]
+
 function createdAdminInit(dat){
   return new Promise(function(resolve,reject){
     fetch(url+`/createdAdminInit`,{method:'post',headers:{'Accept':'application/json,text/plain','Content-Type':'application/json','x-access-token':""},
